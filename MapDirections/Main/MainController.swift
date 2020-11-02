@@ -22,3 +22,26 @@ class MainController: UIViewController {
         mapView.mapType = .hybridFlyover
     }
 }
+
+import SwiftUI
+
+struct MainPreview: PreviewProvider {
+    static var previews: some View {
+        ContainerView()
+            .edgesIgnoringSafeArea(.all)
+    }
+    
+    struct ContainerView: UIViewControllerRepresentable {
+        func makeUIViewController(context: Context) -> MainController {
+            return MainController()
+        }
+        
+        func updateUIViewController(_ uiViewController: MainController, context: Context) {
+            
+        }
+        
+        typealias UIViewControllerType = MainController
+        
+        
+    }
+}
