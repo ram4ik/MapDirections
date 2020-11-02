@@ -46,7 +46,15 @@ class MainController: UIViewController {
         whiteContainer.anchor(top: view.safeAreaLayoutGuide.topAnchor, leading: view.leadingAnchor, bottom: nil, trailing: view.trailingAnchor, padding: .init(top: 0, left: 16, bottom: 0, right: 16))
         
         whiteContainer.stack(searchTextField).withMargins(.allSides(16))
-        searchTextField.addTarget(self, action: #selector(handleSearchChanges), for: .editingChanged)
+        
+        //searchTextField.addTarget(self, action: #selector(handleSearchChanges), for: .editingChanged)
+        
+        NotificationCenter.default
+            .publisher(for: UITextField.textDidChangeNotification, object: searchTextField)
+            .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
+            .sink { (_) in
+                self.performLocalSearch()
+            }
     }
     
     @objc fileprivate func handleSearchChanges() {
