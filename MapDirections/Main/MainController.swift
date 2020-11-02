@@ -10,11 +10,11 @@ import MapKit
 import LBTATools
 
 extension MainController: MKMapViewDelegate {
+    
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         
         let annotationView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: "id")
         annotationView.canShowCallout = true
-        
         return annotationView
     }
 }
@@ -29,45 +29,32 @@ class MainController: UIViewController {
         mapView.delegate = self
         view.addSubview(mapView)
         mapView.fillSuperview()
-        
-        //mapView.mapType = .hybridFlyover
         setupRegionForMap()
-        //setupAnnotationsForMap()
         performLocalSearch()
         setupSearchUI()
-        setupLocationCarousel()
+        setupLocationsCarousel()
+        locationsController.mainController = self
     }
     
-    let locationController = LocationCarouselController(scrollDirection: .horizontal)
+    let locationsController = LocationsCarouselController(scrollDirection: .horizontal)
     
-    fileprivate func setupLocationCarousel() {
-        
-        let locationsView = locationController.view!
-        
+    fileprivate func setupLocationsCarousel() {
+        let locationsView = locationsController.view!
+            
         view.addSubview(locationsView)
-        locationsView.anchor(top: nil, leading: view.leadingAnchor, bottom: view.safeAreaLayoutGuide.bottomAnchor, trailing: view.trailingAnchor, size: .init(width: 0, height: 150))
+        locationsView.anchor(top: nil, leading: view.leadingAnchor, bottom: view.safeAreaLayoutGuide.bottomAnchor, trailing: view.trailingAnchor, size: .init(width: 0, height: 100))
     }
-    
-    
     
     let searchTextField = UITextField(placeholder: "Search query")
     
     fileprivate func setupSearchUI() {
         let whiteContainer = UIView(backgroundColor: .white)
         view.addSubview(whiteContainer)
-        //whiteContainer.fillSuperview()
         whiteContainer.anchor(top: view.safeAreaLayoutGuide.topAnchor, leading: view.leadingAnchor, bottom: nil, trailing: view.trailingAnchor, padding: .init(top: 0, left: 16, bottom: 0, right: 16))
         
         whiteContainer.stack(searchTextField).withMargins(.allSides(16))
-        
-        //searchTextField.addTarget(self, action: #selector(handleSearchChanges), for: .editingChanged)
-        
-        NotificationCenter.default
-            .publisher(for: UITextField.textDidChangeNotification, object: searchTextField)
-            .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
-            .sink { (_) in
-                self.performLocalSearch()
-            }
+
+        searchTextField.addTarget(self, action: #selector(handleSearchChanges), for: .editingChanged)
     }
     
     @objc fileprivate func handleSearchChanges() {
@@ -79,22 +66,36 @@ class MainController: UIViewController {
         request.naturalLanguageQuery = searchTextField.text
         request.region = mapView.region
         
+        mapView.annotations.forEach { (annotation) in
+            if annotation.title == "TEST" {
+                mapView.selectAnnotation(annotation, animated: true)
+            }
+        }
+        
         let localSearch = MKLocalSearch(request: request)
-        localSearch.start { (response, err) in
+        localSearch.start { (resp, err) in
             if let err = err {
                 print("Failed local search:", err)
                 return
             }
-            
+
             self.mapView.removeAnnotations(self.mapView.annotations)
+            self.locationsController.items.removeAll()
             
-            response?.mapItems.forEach({ (mapItem) in
+            resp?.mapItems.forEach({ (mapItem) in
                 print(mapItem.address())
+                
                 let annotation = MKPointAnnotation()
                 annotation.coordinate = mapItem.placemark.coordinate
                 annotation.title = mapItem.name
                 self.mapView.addAnnotation(annotation)
+                
+                self.locationsController.items.append(mapItem)
             })
+            
+            if resp?.mapItems.count != 0 { self.locationsController.collectionView.scrollToItem(at: [0, 0], at: .centeredHorizontally, animated: true)
+            }
+            
             self.mapView.showAnnotations(self.mapView.annotations, animated: true)
         }
     }
@@ -109,43 +110,17 @@ class MainController: UIViewController {
         let appleCampusAnnotation = MKPointAnnotation()
         appleCampusAnnotation.coordinate = .init(latitude: 37.3326, longitude: -122.030024)
         appleCampusAnnotation.title = "Apple Campus"
-        appleCampusAnnotation.subtitle = "Cupertino,CA"
+        appleCampusAnnotation.subtitle = "Cupertino, CA"
         mapView.addAnnotation(appleCampusAnnotation)
         
         mapView.showAnnotations(self.mapView.annotations, animated: true)
     }
     
     fileprivate func setupRegionForMap() {
-        let centerCoordinate = CLLocationCoordinate2DMake(37.7666, -122.427290)
+        let centerCoordinate = CLLocationCoordinate2D(latitude: 37.7666, longitude: -122.427290)
         let span = MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
         let region = MKCoordinateRegion(center: centerCoordinate, span: span)
         mapView.setRegion(region, animated: true)
-    }
-}
-
-extension MKMapItem {
-    func address() -> String {
-        
-        var addressString = ""
-        if placemark.subThoroughfare != nil {
-            addressString = placemark.subThoroughfare! + " "
-        }
-        if placemark.thoroughfare != nil {
-            addressString = placemark.thoroughfare! + ", "
-        }
-        if placemark.postalCode != nil {
-            addressString = placemark.postalCode! + " "
-        }
-        if placemark.locality != nil {
-            addressString = placemark.locality! + ", "
-        }
-        if placemark.administrativeArea != nil {
-            addressString = placemark.administrativeArea! + " "
-        }
-        if placemark.country != nil {
-            addressString = placemark.country!
-        }
-        return addressString
     }
 }
 
@@ -153,21 +128,18 @@ import SwiftUI
 
 struct MainPreview: PreviewProvider {
     static var previews: some View {
-        ContainerView()
-            .edgesIgnoringSafeArea(.all)
+        ContainerView().edgesIgnoringSafeArea(.all)
     }
     
     struct ContainerView: UIViewControllerRepresentable {
-        func makeUIViewController(context: Context) -> MainController {
+        
+        func makeUIViewController(context: UIViewControllerRepresentableContext<MainPreview.ContainerView>) -> MainController {
             return MainController()
         }
         
-        func updateUIViewController(_ uiViewController: MainController, context: Context) {
-            
+        func updateUIViewController(_ uiViewController: MainController, context: UIViewControllerRepresentableContext<MainPreview.ContainerView>) {
         }
         
         typealias UIViewControllerType = MainController
-        
-        
     }
 }
