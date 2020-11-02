@@ -21,6 +21,22 @@ class MainController: UIViewController {
         
         //mapView.mapType = .hybridFlyover
         setupRegionForMap()
+        setupAnnotationsForMap()
+    }
+    
+    fileprivate func setupAnnotationsForMap() {
+        let annotation = MKPointAnnotation()
+        annotation.coordinate = CLLocationCoordinate2D(latitude: 37.7666, longitude: -122.427290)
+        annotation.title = "San Francisco"
+        annotation.subtitle = "CA"
+        mapView.addAnnotation(annotation)
+        
+        let appleCampusAnnotation = MKPointAnnotation()
+        appleCampusAnnotation.coordinate = .init(latitude: 37.3326, longitude: -122.030024)
+        appleCampusAnnotation.title = "Apple Campus"
+        mapView.addAnnotation(appleCampusAnnotation)
+        
+        mapView.showAnnotations(self.mapView.annotations, animated: true)
     }
     
     fileprivate func setupRegionForMap() {
