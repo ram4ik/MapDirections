@@ -35,7 +35,20 @@ class MainController: UIViewController {
         //setupAnnotationsForMap()
         performLocalSearch()
         setupSearchUI()
+        setupLocationCarousel()
     }
+    
+    let locationController = LocationCarouselController(scrollDirection: .horizontal)
+    
+    fileprivate func setupLocationCarousel() {
+        
+        let locationsView = locationController.view!
+        
+        view.addSubview(locationsView)
+        locationsView.anchor(top: nil, leading: view.leadingAnchor, bottom: view.safeAreaLayoutGuide.bottomAnchor, trailing: view.trailingAnchor, size: .init(width: 0, height: 150))
+    }
+    
+    
     
     let searchTextField = UITextField(placeholder: "Search query")
     
