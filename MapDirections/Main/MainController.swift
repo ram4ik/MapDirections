@@ -9,13 +9,24 @@ import UIKit
 import MapKit
 import LBTATools
 
+extension MainController: MKMapViewDelegate {
+    func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
+        
+        let annotationView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: "id")
+        annotationView.canShowCallout = true
+        
+        return annotationView
+    }
+}
+
 class MainController: UIViewController {
     
     let mapView = MKMapView()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
+        mapView.delegate = self
         view.addSubview(mapView)
         mapView.fillSuperview()
         
@@ -34,6 +45,7 @@ class MainController: UIViewController {
         let appleCampusAnnotation = MKPointAnnotation()
         appleCampusAnnotation.coordinate = .init(latitude: 37.3326, longitude: -122.030024)
         appleCampusAnnotation.title = "Apple Campus"
+        appleCampusAnnotation.subtitle = "Cupertino,CA"
         mapView.addAnnotation(appleCampusAnnotation)
         
         mapView.showAnnotations(self.mapView.annotations, animated: true)
