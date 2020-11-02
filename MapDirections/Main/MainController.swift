@@ -32,7 +32,54 @@ class MainController: UIViewController {
         
         //mapView.mapType = .hybridFlyover
         setupRegionForMap()
-        setupAnnotationsForMap()
+        //setupAnnotationsForMap()
+        performLocalSearch()
+    }
+    
+    fileprivate func performLocalSearch() {
+        let request = MKLocalSearch.Request()
+        request.naturalLanguageQuery = "Apple"
+        request.region = mapView.region
+        
+        let localSearch = MKLocalSearch(request: request)
+        localSearch.start { (response, err) in
+            if let err = err {
+                print("Failed local search:", err)
+                return
+            }
+            response?.mapItems.forEach({ (mapItem) in
+                //print(mapItem.name ?? "")
+                //print(mapItem.placemark.subThoroughfare ?? "")
+                
+                let placemark = mapItem.placemark
+                var addressString = ""
+                if placemark.subThoroughfare != nil {
+                    addressString = placemark.subThoroughfare! + " "
+                }
+                if placemark.thoroughfare != nil {
+                    addressString = placemark.thoroughfare! + ", "
+                }
+                if placemark.postalCode != nil {
+                    addressString = placemark.postalCode! + " "
+                }
+                if placemark.locality != nil {
+                    addressString = placemark.locality! + ", "
+                }
+                if placemark.administrativeArea != nil {
+                    addressString = placemark.administrativeArea! + " "
+                }
+                if placemark.country != nil {
+                    addressString = placemark.country!
+                }
+                print(addressString)
+                
+                let annotation = MKPointAnnotation()
+                annotation.coordinate = mapItem.placemark.coordinate
+                annotation.title = mapItem.name
+                self.mapView.addAnnotation(annotation)
+            })
+            self.mapView.showAnnotations(self.mapView.annotations, animated: true)
+        }
     }
     
     fileprivate func setupAnnotationsForMap() {
