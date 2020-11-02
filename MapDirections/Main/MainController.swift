@@ -19,7 +19,15 @@ class MainController: UIViewController {
         view.addSubview(mapView)
         mapView.fillSuperview()
         
-        mapView.mapType = .hybridFlyover
+        //mapView.mapType = .hybridFlyover
+        setupRegionForMap()
+    }
+    
+    fileprivate func setupRegionForMap() {
+        let centerCoordinate = CLLocationCoordinate2DMake(37.7666, -122.427290)
+        let span = MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
+        let region = MKCoordinateRegion(center: centerCoordinate, span: span)
+        mapView.setRegion(region, animated: true)
     }
 }
 
