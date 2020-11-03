@@ -28,7 +28,8 @@ class LocationCell: LBTAListCell<MKMapItem> {
         setupShadow(opacity: 0.2, radius: 5, offset: .zero, color: .black)
         layer.cornerRadius = 5
         
-        hstack(stack(label, addressLabel, spacing: 12).withMargins(.allSides(16)), alignment: .center)
+        hstack(stack(label, addressLabel, spacing: 12).withMargins(.allSides(16)),
+               alignment: .center)
     }
 }
 
@@ -38,11 +39,14 @@ class LocationsCarouselController: LBTAListController<LocationCell, MKMapItem> {
     
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let annotations = mainController?.mapView.annotations
+        
         annotations?.forEach({ (annotation) in
-            if annotation.title == self.items[indexPath.item].name {
+            guard let customAnnotation = annotation as? MainController.CustomMapItemAnnotation else { return }
+            if customAnnotation.mapItem?.name == self.items[indexPath.item].name {
                 mainController?.mapView.selectAnnotation(annotation, animated: true)
             }
         })
+        
         collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: true)
     }
     
