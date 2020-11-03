@@ -13,20 +13,52 @@ extension MainController: MKMapViewDelegate {
     
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         
-        let annotationView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: "id")
-        annotationView.canShowCallout = true
-        return annotationView
+        if (annotation is MKPointAnnotation) {
+            let annotationView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: "id")
+            annotationView.canShowCallout = true
+            return annotationView
+        }
+        return nil
     }
 }
 
-class MainController: UIViewController {
+class MainController: UIViewController, CLLocationManagerDelegate {
     
     let mapView = MKMapView()
+    let locationManager = CLLocationManager()
+    
+    fileprivate func requestUserLocation() {
+        
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.delegate = self
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        switch status {
+        case .authorizedWhenInUse:
+            print("Receive authorization of user location")
+            
+            // request for where the user actually is
+            locationManager.startUpdatingLocation()
+        default:
+            print("Failed to authorize")
+        }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let firstLoation = locations.first else { return }
+        mapView.setRegion(.init(center: firstLoation.coordinate, span: .init(latitudeDelta: 0.1, longitudeDelta: 0.1)), animated: false)
+        
+        locationManager.stopUpdatingLocation()
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        requestUserLocation()
+        
         mapView.delegate = self
+        mapView.showsUserLocation = true
         view.addSubview(mapView)
         mapView.fillSuperview()
         setupRegionForMap()
