@@ -49,7 +49,13 @@ class MainController: UIViewController, CLLocationManagerDelegate {
         guard let firstLoation = locations.first else { return }
         mapView.setRegion(.init(center: firstLoation.coordinate, span: .init(latitudeDelta: 0.1, longitudeDelta: 0.1)), animated: false)
         
-        locationManager.stopUpdatingLocation()
+        //locationManager.stopUpdatingLocation()
+    }
+    
+    func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
+        guard let index = self.locationsController.items.firstIndex(where: { $0.name == view.annotation?.title}) else { return }
+        
+        self.locationsController.collectionView.scrollToItem(at: [0, index], at: .centeredHorizontally, animated: true)
     }
     
     override func viewDidLoad() {
